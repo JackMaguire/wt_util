@@ -9,15 +9,15 @@
 #include <filesystem> //remove
 
 namespace wt_util {
-  
+
 class OnTheFlyFileResource : public Wt::WStreamResource {
 public:
-  
+
   struct Result {
     std::string message;
     bool success;
   };
-  
+
   OnTheFlyFileResource(
     Wt::WContainerWidget * root,
   ) :
@@ -29,7 +29,7 @@ public:
   // This is the only thing you need to implement
   virtual
   Result run() = 0;
-  
+
   void handleRequest(
     Wt::Http::Request const & request,
     Wt::Http::Response & response
@@ -40,7 +40,7 @@ public:
       if( result.success ){
 	iss_for_most_recent_request_ = std::make_unique< std::istringstream >( result.message );
       } else {
-  iss_for_most_recent_request_ = std::make_unique< std::istringstream >( "" );
+	iss_for_most_recent_request_ = std::make_unique< std::istringstream >( "" );
 	handleFailure( result.message );
 	return;
       }
@@ -76,11 +76,11 @@ public:
     std::ostringstream contents;
     contents << in.rdbuf();
     in.close();
-	  
+
     if( delete_file ){
-      std::filesystem::remove( filename );    
+      std::filesystem::remove( filename );
     }
-	  
+
     return contents.str();
   }
 
@@ -88,5 +88,5 @@ private:
   Wt::WContainerWidget * root_;
   std::unique_ptr< std::istringstream > iss_for_most_recent_request_;
 };
-  
+
 } // namespace
