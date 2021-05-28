@@ -4,7 +4,9 @@
 #include <Wt/WMessageBox.h>
 
 #include <sstream>
+#include <fstream>
 #include <memory>
+#include <filesystem> //remove
 
 namespace wt_util {
   
@@ -66,6 +68,21 @@ public:
     messageBox->show();
   }
 
+  static
+  std::string
+  load_file_contents( std::string const & filename, bool const delete_file ) {
+    std::ifstream in( filename, std::ios::in | std::ios::binary );
+    assert( in.is_open() );
+    std::ostringstream contents;
+    contents << in.rdbuf();
+    in.close();
+	  
+    if( delete_file ){
+      std::filesystem::remove( filename );    
+    }
+	  
+    return contents.str();
+  }
 
 private:
   Wt::WContainerWidget * root_;
