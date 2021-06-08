@@ -10,6 +10,7 @@
 #include <cassert>
 #include <memory>
 #include <filesystem> //remove
+//#include <iostream> //debug
 
 //Wt
 #include <Wt/WPushButton.h>
@@ -19,7 +20,7 @@
 #include <Wt/WMessageBox.h>
 
 //CEREAL
-#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/map.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/archives/binary.hpp>
 
@@ -56,8 +57,8 @@ serialize( T const & t ){
 }
 
 template< typename T >
-std::map< std::string, std::string >
-deserialize( T const & t, std::string const & filename, bool const run_asserts ){
+void
+deserialize( T & t, std::string const & filename, bool const run_asserts ){
   //std::stringstream ss( data );
   std::ifstream ss( filename );
   cereal::BinaryInputArchive unarchive( ss );
@@ -82,7 +83,7 @@ deserialize( T const & t, std::string const & filename, bool const run_asserts )
     all_data[ key ] = value;
   }
 
-  return all_data;
+  t.deserialize( all_data );
 }
 
 } //namespace impl
@@ -109,7 +110,7 @@ public:
 
     return result;
   }
-  
+
 
 private:
   T const * t_;
@@ -119,10 +120,18 @@ template< typename T >
 class SaveButton : public Wt::WPushButton {
 public:
   //no ownership in this implementation!
-  SaveButton( Wt::WString const & text, T const * object, Wt::WContainerWidget * const root ) :
+  SaveButton(
+    Wt::WString const & text,
+    T const * object,
+    Wt::WContainerWidget * const root,
+    Wt::WString const & suggested_file_name
+  ) :
     Wt::WPushButton( text )
   {
-    setLink( Wt::WLink( std::make_shared< SaveButtonResouce< T > >( object, root ) ) );
+    auto resource = std::make_shared< SaveButtonResouce< T > >( object, root );
+    resource->setDispositionType( Wt::ContentDisposition::Attachment );
+    resource->suggestFileName( suggested_file_name );
+    setLink( Wt::WLink( resource ) );
   }
 
 };
@@ -134,7 +143,7 @@ public:
   //no ownership in this implementation!
   LoadButton(
     Wt::WString const & text,
-    T const * object, //too deserialize
+    T * object, //too deserialize
     Wt::WContainerWidget * const root,
     Wt::WFileUpload * const fileupload
   ) :
@@ -149,11 +158,9 @@ public:
 
     fileupload->uploaded().connect(
       [=] {
-	std::string const filename = fu->spoolFileName();
-	if( filename.size() > 1 ){	  
-	  impl::deserialize( *object, filename, true );
-	}
-	std::filesystem::remove( filename );      
+	std::string const filename = fileupload->spoolFileName();
+	impl::deserialize( *object, filename, true );
+	std::filesystem::remove( filename );
 	enable();
       }
     );
@@ -171,11 +178,11 @@ public:
 	messageBox->setModal( false );
 	messageBox->buttonClicked().connect(
 	  [=] {
-	    root_->removeChild( messageBox );
+	    root->removeChild( messageBox );
 	    enable();
 	  }
 	);
-	messageBox->show();	
+	messageBox->show();
       }
     );
   }
