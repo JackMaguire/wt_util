@@ -124,4 +124,39 @@ public:
 
 };
 
+
+template< typename T >
+class LoadButton : public Wt::WPushButton {
+public:
+  //no ownership in this implementation!
+  LoadButton(
+    Wt::WString const & text,
+    T const * object, //too deserialize
+    Wt::WContainerWidget * const root,
+    Wt::WFileUpload * const fileupload
+  ) :
+    Wt::WPushButton( text )
+  {
+    clicked().connect(
+      [=] {
+	fileupload->upload();
+	disable();
+      }
+    );
+
+    fu->uploaded().connect(
+    [=] {
+      upload_button->enable();
+
+      auto const filename = fu->spoolFileName();
+      if( filename.size() > 1 ){
+	upload_out->setText( serialization::load_file( filename, * graph_, * options_ ) );
+	refreshers_->refresh_all_objects();
+      }
+    }
+  );
+  }
+
+};
+
 }
