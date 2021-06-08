@@ -126,14 +126,30 @@ public:
     Wt::WContainerWidget * const root,
     Wt::WString const & suggested_file_name
   ) :
-    Wt::WPushButton( text )
+    Wt::WPushButton( text ),
+    suggested_file_name_( suggested_file_name )
   {
-    auto resource = std::make_shared< SaveButtonResouce< T > >( object, root );
-    resource->setDispositionType( Wt::ContentDisposition::Attachment );
-    resource->suggestFileName( suggested_file_name );
-    setLink( Wt::WLink( resource ) );
+    resource_ = std::make_shared< SaveButtonResouce< T > >( object, root );
+    resource_->setDispositionType( Wt::ContentDisposition::Attachment );
+    resource_->suggestFileName( get_suggested_file_name() );
+    setLink( Wt::WLink( resource_ ) );
   }
 
+  Wt::WString
+  get_suggested_file_name() const {
+    return suggested_file_name_;
+  }
+
+  void
+  set_file_name( Wt::WString const & name ) {
+    suggested_file_name_ = name;
+    resource_->suggestFileName( suggested_file_name_ );
+  }
+
+private:
+  Wt::WString suggested_file_name_;
+  std::shared_ptr< SaveButtonResouce< T > > resource_;
+  
 };
 
 
