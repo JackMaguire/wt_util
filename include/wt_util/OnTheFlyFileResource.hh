@@ -19,7 +19,7 @@ public:
   };
 
   OnTheFlyFileResource(
-    Wt::WContainerWidget * root,
+    Wt::WContainerWidget * root
   ) :
     root_( root )
   {}
@@ -54,7 +54,7 @@ public:
     Wt::WMessageBox * const messageBox = root_->addChild(
       std::make_unique< Wt::WMessageBox >(
 	"Error",
-	"Compilation failed with message: " + message,
+	"Download failed with message: " + message,
 	Wt::Icon::Critical,
 	Wt::StandardButton::Ok
       )
