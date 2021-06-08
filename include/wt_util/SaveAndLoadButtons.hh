@@ -16,6 +16,7 @@
 #include <Wt/WLink.h>
 #include <Wt/WFileResource.h>
 #include <Wt/WContainerWidget.h>
+#include <Wt/WMessageBox.h>
 
 //CEREAL
 #include <cereal/types/unordered_map.hpp>
@@ -148,12 +149,33 @@ public:
 
     fileupload->uploaded().connect(
       [=] {
-	enable();
 	std::string const filename = fu->spoolFileName();
 	if( filename.size() > 1 ){	  
 	  impl::deserialize( *object, filename, true );
 	}
 	std::filesystem::remove( filename );      
+	enable();
+      }
+    );
+
+    fileupload->fileTooLarge().connect(
+      [=] {
+	Wt::WMessageBox * const messageBox = root->addChild(
+	  std::make_unique< Wt::WMessageBox >(
+	    "Error",
+	    "File is too large!",
+	    Wt::Icon::Critical,
+	    Wt::StandardButton::Ok
+	  )
+	);
+	messageBox->setModal( false );
+	messageBox->buttonClicked().connect(
+	  [=] {
+	    root_->removeChild( messageBox );
+	    enable();
+	  }
+	);
+	messageBox->show();	
       }
     );
   }
