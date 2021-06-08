@@ -2,19 +2,20 @@
 
 #include <wt_util/OnTheFlyFileResource.hh>
 
-//#include <Wt/WStreamResource.h>
-//#include <Wt/WMessageBox.h>
-
-//#include <sstream>
-//#include <fstream>
-//#include <memory>
-//#include <filesystem> //remove
-#include <cassert>
-
 //C++
 #include <map>
 #include <string>
 #include <sstream>
+#include <fstream>
+#include <cassert>
+#include <memory>
+#include <filesystem> //remove
+
+//Wt
+#include <Wt/WPushButton.h>
+#include <Wt/WLink.h>
+#include <Wt/WFileResource.h>
+#include <Wt/WContainerWidget.h>
 
 //CEREAL
 #include <cereal/types/unordered_map.hpp>
@@ -55,8 +56,9 @@ serialize( T const & t ){
 
 template< typename T >
 std::map< std::string, std::string >
-deserialize( T const & t, std::string const & data, bool const run_asserts ){
-  std::stringstream ss( data );
+deserialize( T const & t, std::string const & filename, bool const run_asserts ){
+  //std::stringstream ss( data );
+  std::ifstream ss( filename );
   cereal::BinaryInputArchive unarchive( ss );
 
   std::string first_token;
@@ -144,17 +146,16 @@ public:
       }
     );
 
-    fu->uploaded().connect(
-    [=] {
-      upload_button->enable();
-
-      auto const filename = fu->spoolFileName();
-      if( filename.size() > 1 ){
-	upload_out->setText( serialization::load_file( filename, * graph_, * options_ ) );
-	refreshers_->refresh_all_objects();
+    fileupload->uploaded().connect(
+      [=] {
+	enable();
+	std::string const filename = fu->spoolFileName();
+	if( filename.size() > 1 ){	  
+	  impl::deserialize( *object, filename, true );
+	}
+	std::filesystem::remove( filename );      
       }
-    }
-  );
+    );
   }
 
 };
