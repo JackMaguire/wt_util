@@ -20,13 +20,19 @@
 #include <Wt/WMessageBox.h>
 
 //CEREAL
+#ifdef WT_UTIL_USE_CEREAL
 #include <cereal/types/map.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/archives/binary.hpp>
+#endif
 
 namespace wt_util {
 
 namespace impl {
+
+
+
+#ifdef WT_UTIL_USE_CEREAL
 /*
   t must have these signatures:
 
@@ -85,7 +91,101 @@ deserialize( T & t, std::string const & filename, bool const run_asserts ){
 
   t.deserialize( all_data );
 }
+#else
 
+/////////////
+//Raw Strings
+
+/*
+  t must have these signatures:
+
+  std::map< std::string, std::string >
+  serialize() const {}
+
+  void
+  deserialize( std::map< std::string, std::string > const & ) {}
+*/
+template< typename T >
+std::string
+serialize( T const & t ){
+  std::stringstream ss;
+
+  std::string const delimiter = "@&$#!";
+  assert( delimiter.size() < 10 );
+
+  ss << delimiter.size();
+
+  auto && archive =
+    [&]( std::string const & s ){
+      assert( s.find(delimiter) == std::string::npos );
+      ss << delimiter << s;
+    };
+
+  archive( std::string("BEGIN") );
+
+  std::map< std::string, std::string > const all_data = t.serialize();
+  for( auto const pair : all_data ){
+    std::string const & key = pair.first;
+    std::string const & value = pair.second;
+    archive( key );
+    archive( value );
+  }
+
+  archive( std::string("END") );
+  return ss.str();
+}
+
+template< typename T >
+void
+deserialize( T & t, std::string const & filename, bool const run_asserts ){
+  //https://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
+  std::ifstream ss( filename );
+  std::stringstream strStream;
+  strStream << ss.rdbuf(); //read the file
+
+  std::string const entire_file_contents = strStream.str();
+  std::string const delimiter = "@&$#!";
+
+  //std::cout << delimiter << std::endl;
+  //std::cout << entire_file_contents.substr( 1, 5 ) << std::endl;
+
+  assert( entire_file_contents.substr( 1, 5 ) == delimiter ); //TODO this should define delimiter
+  std::string::size_type curr_pos = 6;
+
+  auto && unarchive =
+    [&]( std::string & destination ){
+      std::string::size_type const find_result =
+	entire_file_contents.find( delimiter, curr_pos );
+      destination = entire_file_contents.substr( curr_pos, find_result-curr_pos );
+      curr_pos = find_result + delimiter.size();
+    };
+
+  std::string first_token;
+  unarchive( first_token );
+  if( run_asserts )
+    assert( first_token == "BEGIN" ); //Check for corruption
+
+  std::map< std::string, std::string > all_data;
+
+  std::string key;
+  std::string value;
+  while( true ){
+    unarchive( key );
+    if( key == "END" ) break;
+
+    if( run_asserts )
+      assert( all_data.find( key ) == all_data.end() );
+
+    unarchive( value );
+    all_data[ key ] = value;
+  }
+
+  t.deserialize( all_data );
+}
+
+
+
+#endif
 } //namespace impl
 
 template< typename T >
