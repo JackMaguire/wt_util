@@ -27,12 +27,12 @@ public:
     std::vector< Wt::WTextEdit * > guesses( npasswords );
 
     for( uint i = 0; i < npasswords; ++i ){
-      guesses[ i ] = layout->addWidget< Wt::WText >( std::make_unique< Wt::WPushButton >( "Password #" + std::to_string(i) ), i, 0 );
-      layout->addWidget< Wt::WText >( std::make_unique< Wt::WTextEdit >( "???" ), i, 1 );
+      layout->addWidget< Wt::WText >( std::make_unique< Wt::WText >( "Password #" + std::to_string(i) ), i, 0 );
+      guesses[ i ] = layout->addWidget< Wt::WTextEdit >( std::make_unique< Wt::WTextEdit >( "???" ), i, 1 );
     }
 
 
-    Wt::WPushButton * const button = my_contents->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Log In" ), npasswords, 1 );
+    Wt::WPushButton * const button = layout->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Log In" ), npasswords, 1 );
     button->setMinimumSize( 10, 40 );
     button->clicked().connect(
       [=]{
