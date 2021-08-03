@@ -18,7 +18,7 @@ public:
     std::string const & text,
     std::string const & suggestion,
     Wt::WContainerWidget * parent,
-    std::function< void(std::string const &) > operation
+    std::function< void(std::string const &) > && operation
   ){
     setMinimumSize( 500, 500 );
 
@@ -32,6 +32,7 @@ public:
     close_button->clicked().connect(
       [=]{
 	operation( area->text().toUTF8() );
+
 	assert( parent != nullptr );
 	parent->removeChild( this );
       }
