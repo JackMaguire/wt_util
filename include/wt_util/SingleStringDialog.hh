@@ -17,12 +17,9 @@ public:
     setMinimumSize( 500, 500 );
 
     Wt::WContainerWidget * const my_contents = contents();    
-    my_contents->addWidget( std::make_unique< Wt::WText >( "Validation Output:" ) );
-    my_contents->addWidget( std::make_unique< Wt::WBreak >() );
     my_contents->addWidget( std::make_unique< Wt::WText >( text ) );
-    my_contents->addWidget( std::make_unique< Wt::WBreak >() );
 
-    // Cancel Button
+    // Close Button
     Wt::WPushButton * const close_button = my_contents->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Close" ) );
     close_button->setMinimumSize( 10, 40 );
     close_button->clicked().connect(

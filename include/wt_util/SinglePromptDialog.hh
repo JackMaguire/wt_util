@@ -6,27 +6,32 @@
 #include <Wt/WContainerWidget.h>
 #include <Wt/WPushButton.h>
 #include <Wt/WText.h>
+#include <Wt/WTextArea.h>
 
 #include <cassert>
 
 namespace wt_util {
 
-class SingleStringDialog : public Wt::WDialog {
+class SinglePromptDialog : public Wt::WDialog {
 public:
-  SingleStringDialog( std::string const & text, Wt::WContainerWidget * parent ){
+  SinglePromptDialog(
+    std::string const & text,
+    std::string const & suggestion,
+    Wt::WContainerWidget * parent,
+    std::function< void(std::string const &) > operation
+  ){
     setMinimumSize( 500, 500 );
 
-    Wt::WContainerWidget * const my_contents = contents();    
-    my_contents->addWidget( std::make_unique< Wt::WText >( "Validation Output:" ) );
-    my_contents->addWidget( std::make_unique< Wt::WBreak >() );
+    Wt::WContainerWidget * const my_contents = contents();
     my_contents->addWidget( std::make_unique< Wt::WText >( text ) );
     my_contents->addWidget( std::make_unique< Wt::WBreak >() );
+    Wt::WTextArea * area = my_contents->addWidget( std::make_unique< Wt::WTextArea >( suggestion ) );
 
-    // Cancel Button
-    Wt::WPushButton * const close_button = my_contents->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Close" ) );
+    Wt::WPushButton * const close_button = my_contents->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Done" ) );
     close_button->setMinimumSize( 10, 40 );
     close_button->clicked().connect(
       [=]{
+	operation( area->text().toUTF8() );
 	assert( parent != nullptr );
 	parent->removeChild( this );
       }
