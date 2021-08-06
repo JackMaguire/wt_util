@@ -30,9 +30,9 @@ public:
     }
 
 
-    Wt::WPushButton * const button = layout->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Log In" ), npasswords, 1 );
-    button->setMinimumSize( 10, 40 );
-    button->clicked().connect(
+    button_ = layout->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Log In" ), npasswords, 1 );
+    button_->setMinimumSize( 10, 40 );
+    button_->clicked().connect(
       [=]{
 	for( uint i = 0; i < npasswords; ++i ){
 	  assert( guesses[ i ] != nullptr );
@@ -64,9 +64,9 @@ public:
     }
 
 
-    Wt::WPushButton * const button = layout->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Log In" ), npasswords, 1 );
-    button->setMinimumSize( 10, 40 );
-    button->clicked().connect(
+    button_ = layout->addWidget< Wt::WPushButton >( std::make_unique< Wt::WPushButton >( "Log In" ), npasswords, 1 );
+    button_->setMinimumSize( 10, 40 );
+    button_->clicked().connect(
       [=]{
 	for( uint i = 0; i < npasswords; ++i ){
 	  assert( guesses[ i ] != nullptr );
@@ -99,6 +99,21 @@ public:
     parent->addChild( std::make_unique< LazyAuthDialog >( passwords, parent ) )->show();    
   }
 
+  static
+  void
+  protect(
+    std::vector< std::pair< std::string, std::string > > const & passwords,
+    Wt::WContainerWidget * parent,
+    std::function< void() > foo
+  ){
+    LazyAuthDialog * auth_dialog =
+      parent->addChild( std::make_unique< LazyAuthDialog >( passwords, parent ) );
+    auth_dialog->button_->clicked().connect( foo );
+    auth_dialog->show();
+  }
+
+private:
+  Wt::WPushButton * button_;
 };
 
 }
