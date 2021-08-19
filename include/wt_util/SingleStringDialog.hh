@@ -30,6 +30,15 @@ public:
     );
 
   }
+
+static
+void
+add(
+  Wt::WContainerWidget * parent,
+  std::string const & message
+){
+  parent->addChild( std::make_unique< wt_util::SingleStringDialog >( message, parent ) )->show();
+}
 };
 
 }
